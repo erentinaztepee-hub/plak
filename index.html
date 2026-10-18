@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Plak</title>
-<meta name="description" content="Spotify'da çalan şarkıyı dönen bir plak olarak gösterir.">
+<meta name="description" content="Spotify'da çalan şarkıyı dönen bir plak, kaset ya da CD olarak gösterir.">
 <meta name="theme-color" content="#0d0b0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -14,9 +14,9 @@
 <link rel="icon" id="favIcon" href="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Caveat:wght@500;600&display=swap">
 <style>
-/* Layout: full-bleed album-colour field; record composition left (top in portrait), track notes right. Controls fade out while music plays. */
+/* Layout: full-bleed album-colour field; the "object" (record, tape, disc or cover) left, track notes right. Six views share one stage. */
 :root{
   --ink:#ffffff;
   --ink-2:rgba(255,255,255,.76);
@@ -29,10 +29,16 @@
   --panel:rgba(18,16,15,.78);
   --accent:#f3c08a;
   --danger:#ff9e8a;
+  --c1:#d9783f;
+  --c1-ink:#fbf4e8;
+  --shell:#262220;
+  --paper:#efe8da;
+  --biro:#22407e;
 
   --sans:"Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono:"Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --serif:"Instrument Serif", "Iowan Old Style", "Palatino", Georgia, serif;
+  --hand:"Caveat", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
 
   color-scheme:dark;
 }
@@ -73,21 +79,28 @@ body.idle .chrome{opacity:0;pointer-events:none}
 body.idle{cursor:none}
 
 /* Top bar */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;position:relative;z-index:5}
-.wordmark{font:italic 400 32px/1 var(--serif);letter-spacing:.01em;color:var(--ink)}
-.bar-actions{display:flex;align-items:center;gap:8px;position:relative}
+.bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;min-height:44px;position:relative;z-index:5}
+.wordmark{justify-self:start;font:italic 400 32px/1 var(--serif);letter-spacing:.01em;color:var(--ink)}
 .glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4)}
-.seg{display:flex;padding:3px;border-radius:999px}
-.seg button{appearance:none;border:0;background:none;cursor:pointer;height:32px;padding:0 15px;border-radius:999px;font:500 13px/1 var(--sans);color:var(--ink-2);transition:background .2s, color .2s}
-.seg button[aria-pressed="true"]{background:var(--ink);color:#141210}
+.tabs{justify-self:center;display:flex;padding:3px;border-radius:999px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{appearance:none;border:0;background:none;cursor:pointer;flex:none;height:34px;padding:0 15px;border-radius:999px;font:500 13.5px/1 var(--sans);color:var(--ink-2);transition:background .2s, color .2s}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:#141210}
+.bar-actions{justify-self:end;display:flex;align-items:center;gap:8px;position:relative}
 .icon-btn{appearance:none;cursor:pointer;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--ink);transition:background .2s}
 .icon-btn:hover{background:var(--glass-hi)}
 .icon-btn[aria-pressed="true"]{background:var(--ink);color:#141210}
 .icon-btn svg{width:18px;height:18px}
-@media (max-width:520px){ .seg button{padding:0 11px} }
+@media (max-width:860px){
+  .bar{grid-template-columns:1fr auto;row-gap:12px}
+  .tabs{grid-column:1 / -1;grid-row:2;justify-self:stretch;justify-content:space-between}
+  .tabs button{padding:0 12px;flex:1 0 auto}
+}
+@media (max-width:440px){ .tabs button{padding:0 8px;font-size:13px} }
 
 .menu{
-  position:absolute;right:0;top:50px;width:260px;padding:6px;border-radius:16px;
+  position:absolute;right:0;top:50px;width:270px;padding:6px;border-radius:16px;
   background:var(--panel);border:1px solid var(--line);
   -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
   box-shadow:0 24px 48px rgba(0,0,0,.45);
@@ -96,7 +109,7 @@ body.idle{cursor:none}
 .menu button:hover{background:rgba(255,255,255,.07)}
 .menu button .val{color:var(--ink-3);font-weight:400}
 .menu .danger{color:var(--danger)}
-.menu .note{margin:4px 0 0;padding:10px 12px 8px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.5;color:var(--ink-3)}
+.menu .note{margin:4px 0 0;padding:10px 12px 8px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.6;color:var(--ink-3)}
 .menu kbd{font:500 11px/1 var(--mono);padding:2px 5px;border-radius:4px;border:1px solid var(--line);color:var(--ink-2)}
 
 /* Stage */
@@ -107,33 +120,32 @@ body.idle{cursor:none}
   .info{justify-self:start}
 }
 
-/* Record composition */
+/* Object stage: one box, six views */
 .comp{
-  --S:min(calc((100vw - 56px) / 1.5), 42vh);
+  --S:min(calc((100vw - 56px) / 1.5), 40vh);
   position:relative;height:var(--S);width:calc(var(--S) * 1.5);
   transition:width .6s cubic-bezier(.22,.9,.24,1);
+  touch-action:pan-y;
 }
-@supports (height:100dvh){ .comp{--S:min(calc((100vw - 56px) / 1.5), 42dvh)} }
+@supports (height:100dvh){ .comp{--S:min(calc((100vw - 56px) / 1.5), 40dvh)} }
 @media (min-aspect-ratio:1/1) and (min-width:760px){
-  .comp{--S:min(64vh, 34vw)}
-  @supports (height:100dvh){ .comp{--S:min(64dvh, 34vw)} }
+  .comp{--S:min(62vh, 34vw)}
+  @supports (height:100dvh){ .comp{--S:min(62dvh, 34vw)} }
 }
-.comp.mode-turntable{width:calc(var(--S) * 1.25)}
+.comp[data-mode="turntable"],.comp[data-mode="label"]{width:calc(var(--S) * 1.25)}
+.comp[data-mode="cd"]{width:calc(var(--S) * 1.1)}
+.comp[data-mode="desk"]{width:var(--S)}
 
-.sleeve{
-  position:absolute;left:0;top:0;z-index:2;width:var(--S);height:var(--S);
-  border-radius:calc(var(--S) * .012);overflow:hidden;background:#1c1a19;
-  box-shadow:0 calc(var(--S) * .055) calc(var(--S) * .11) rgba(0,0,0,.42), 0 calc(var(--S) * .008) calc(var(--S) * .025) rgba(0,0,0,.3);
-  transition:opacity .5s ease, transform .6s cubic-bezier(.22,.9,.24,1);
-}
-.sleeve img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.sleeve img.fade{animation:fadein .5s ease}
-.sleeve::after{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(128deg, rgba(255,255,255,.17), transparent 30%, transparent 72%, rgba(0,0,0,.16));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-}
-.house-sleeve{
+.v{position:absolute;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease, visibility .45s}
+.comp[data-mode="sleeve"] .v-sleeve,
+.comp[data-mode="turntable"] .v-turntable,
+.comp[data-mode="label"] .v-label,
+.comp[data-mode="cassette"] .v-cassette,
+.comp[data-mode="cd"] .v-cd,
+.comp[data-mode="desk"] .v-desk{opacity:1;visibility:visible}
+
+/* House artwork (when nothing is playing) */
+.house-art{
   position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:9%;
   background:
     radial-gradient(70% 70% at 78% 22%, rgba(255,214,160,.55), transparent 60%),
@@ -142,30 +154,45 @@ body.idle{cursor:none}
 }
 .hs-title{font:italic 400 calc(var(--S) * .2)/.9 var(--serif)}
 .hs-foot{display:flex;justify-content:space-between;font:500 calc(var(--S) * .032)/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;opacity:.75}
-.comp.mode-turntable .sleeve{opacity:0;transform:translateX(-10%) scale(.94);pointer-events:none}
 
+/* Sleeve */
+.sleeve{
+  left:0;top:0;z-index:2;width:var(--S);height:var(--S);
+  border-radius:calc(var(--S) * .012);overflow:hidden;background:#1c1a19;
+  box-shadow:0 calc(var(--S) * .055) calc(var(--S) * .11) rgba(0,0,0,.42), 0 calc(var(--S) * .008) calc(var(--S) * .025) rgba(0,0,0,.3);
+  transition:opacity .45s ease, visibility .45s, transform .6s cubic-bezier(.22,.9,.24,1);
+}
+.comp:not([data-mode="sleeve"]) .sleeve{transform:translateX(-10%) scale(.94)}
+.sleeve img,.desk img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fade{animation:fadein .5s ease}
+.sleeve::after,.desk::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(128deg, rgba(255,255,255,.17), transparent 30%, transparent 72%, rgba(0,0,0,.16));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+/* Platter + record */
 .platter{
-  position:absolute;z-index:0;left:calc(var(--S) * -.025);top:calc(var(--S) * -.025);
+  z-index:0;left:calc(var(--S) * -.025);top:calc(var(--S) * -.025);
   width:calc(var(--S) * 1.05);height:calc(var(--S) * 1.05);border-radius:50%;
   background:rgba(0,0,0,.32);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), 0 calc(var(--S) * .04) calc(var(--S) * .09) rgba(0,0,0,.35);
-  opacity:0;transition:opacity .5s ease;will-change:transform;
+  will-change:transform;
 }
 .strobe{position:absolute;inset:0;border-radius:50%;opacity:.45;
   background:repeating-conic-gradient(rgba(255,255,255,.75) 0 1.2deg, transparent 1.2deg 3.6deg);
   -webkit-mask:radial-gradient(circle closest-side, transparent 0 95.6%, #000 96.2% 98.8%, transparent 99.4%);
           mask:radial-gradient(circle closest-side, transparent 0 95.6%, #000 96.2% 98.8%, transparent 99.4%)}
-.comp.mode-turntable .platter{opacity:1}
 
 .slot{
-  position:absolute;z-index:1;
+  z-index:1;
   left:calc(var(--S) * .03);top:calc(var(--S) * .03);width:calc(var(--S) * .94);height:calc(var(--S) * .94);
   transform:translateX(calc(var(--S) * .3));
-  transition:transform .95s cubic-bezier(.22,.9,.24,1), left .6s ease, top .6s ease, width .6s ease, height .6s ease;
+  transition:opacity .45s ease, visibility .45s, transform .95s cubic-bezier(.22,.9,.24,1), left .6s ease, top .6s ease, width .6s ease, height .6s ease;
 }
-.comp.mode-sleeve.is-playing .slot{transform:translateX(calc(var(--S) * .5))}
-.comp.mode-sleeve.is-empty .slot,.comp.mode-sleeve.swapping .slot{transform:translateX(0)}
-.comp.mode-sleeve.swapping .slot{transition:transform .5s cubic-bezier(.55,0,.8,.2)}
-.comp.mode-turntable .slot{left:0;top:0;width:var(--S);height:var(--S);transform:none}
+.comp[data-mode="sleeve"].is-playing .slot{transform:translateX(calc(var(--S) * .5))}
+.comp[data-mode="sleeve"].is-empty .slot,.comp[data-mode="sleeve"].swapping .slot{transform:translateX(0)}
+.comp[data-mode="sleeve"].swapping .slot{transition:transform .5s cubic-bezier(.55,0,.8,.2)}
+.comp[data-mode="turntable"] .slot,.comp[data-mode="label"] .slot{left:0;top:0;width:var(--S);height:var(--S);transform:none}
 
 .record{
   position:absolute;inset:0;border-radius:50%;will-change:transform;
@@ -176,24 +203,93 @@ body.idle{cursor:none}
     #101010;
   box-shadow:0 0 0 1px rgba(0,0,0,.55), 0 calc(var(--S) * .03) calc(var(--S) * .07) rgba(0,0,0,.42);
 }
-.label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:#2a2421;box-shadow:0 0 0 calc(var(--S) * .003) rgba(0,0,0,.6)}
+.label{position:absolute;inset:32%;border-radius:50%;overflow:hidden;background:#2a2421;box-shadow:0 0 0 calc(var(--S) * .003) rgba(0,0,0,.6);transition:inset .5s ease}
 .label img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .label::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle closest-side, transparent 0 86%, rgba(0,0,0,.28) 93%, rgba(0,0,0,.45) 100%)}
+  background:radial-gradient(circle closest-side, transparent 0 86%, rgba(0,0,0,.22) 93%, rgba(0,0,0,.38) 100%)}
 .house-label{position:absolute;inset:0;display:grid;place-items:center;
   background:radial-gradient(circle closest-side, #f2c48c 0 60%, #e2a05e 61% 100%);color:#2a160c;
   font:italic 400 calc(var(--S) * .07)/1 var(--serif)}
 .house-label span{transform:translateY(-38%)}
 .hole{position:absolute;left:48.8%;top:48.8%;width:2.4%;height:2.4%;border-radius:50%;background:#0a0a0a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
-.comp.mode-turntable .hole{background:radial-gradient(circle at 35% 35%, #f4f1ec, #9a958e 60%, #55514b);box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.comp[data-mode="turntable"] .hole{background:radial-gradient(circle at 35% 35%, #f4f1ec, #9a958e 60%, #55514b);box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.label-print{position:absolute;inset:0;width:100%;height:100%;display:none}
+.comp[data-mode="label"] .label{inset:24%}
+.comp[data-mode="label"] .label-print{display:block}
+.comp[data-mode="label"] .label img,.comp[data-mode="label"] .house-label,.comp[data-mode="label"] .hole{display:none!important}
+.lp-bg{fill:var(--c1)}
+.lp-ring{fill:none;stroke:var(--c1-ink);stroke-width:.45;opacity:.4}
+.lp-ink{fill:var(--c1-ink)}
+.lp-arc{font:500 3.2px var(--mono);letter-spacing:.85px}
+.lp-title{font:700 6.2px var(--sans);letter-spacing:.15px}
+.lp-artist{font:500 5px var(--sans)}
+.lp-small{font:500 2.9px var(--mono);letter-spacing:.4px;opacity:.85}
+.lp-side{font:700 9px var(--sans)}
+.lp-rpm{font:700 6.4px var(--sans)}
+.lp-adapter{fill:#e3ad3a;stroke:#e3ad3a}
+
 .sheen{
   position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
   background:conic-gradient(from 18deg, transparent 0 7%, rgba(255,255,255,.11) 12.5%, transparent 18.5%, transparent 52%, rgba(255,255,255,.075) 63%, transparent 69%);
   -webkit-mask:radial-gradient(circle closest-side, transparent 0 36.5%, #000 37.5% 96.6%, transparent 97.4%);
           mask:radial-gradient(circle closest-side, transparent 0 36.5%, #000 37.5% 96.6%, transparent 97.4%);
 }
-.arm{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:3;opacity:0;transition:opacity .5s ease}
-.comp.mode-turntable .arm{opacity:1;transition-delay:.25s}
+.comp[data-mode="label"] .sheen{
+  -webkit-mask:radial-gradient(circle closest-side, transparent 0 52.5%, #000 53.5% 96.6%, transparent 97.4%);
+          mask:radial-gradient(circle closest-side, transparent 0 52.5%, #000 53.5% 96.6%, transparent 97.4%);
+}
+.arm{inset:0;width:100%;height:100%;overflow:visible;z-index:3}
+
+/* Cassette */
+.cassette{inset:0}
+.cassette svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.cs-shadow{position:absolute;left:2.4%;top:3.5%;width:95.2%;height:93%;border-radius:3.6% / 5.5%;box-shadow:0 calc(var(--S) * .05) calc(var(--S) * .11) rgba(0,0,0,.45), 0 calc(var(--S) * .01) calc(var(--S) * .025) rgba(0,0,0,.3)}
+.comp[data-mode="cassette"].is-playing .cassette svg{animation:hum 3.2s ease-in-out infinite}
+@keyframes hum{50%{transform:translateY(-.35%)}}
+.cs-shell{fill:var(--shell)}
+.cs-label{fill:var(--paper)}
+.cs-stripe{fill:var(--c1)}
+.cs-stripe-ink{fill:var(--c1-ink)}
+.cs-line{stroke:#bfb4a2;stroke-width:.35;fill:none}
+.cs-hand{font-family:var(--hand);font-weight:600;fill:var(--biro)}
+.cs-mono{font:500 3.1px var(--mono);letter-spacing:.5px}
+.cs-side{font:700 8px var(--sans);fill:#2a2420}
+
+/* CD */
+.cd{left:calc(var(--S) * .05);top:0;width:var(--S);height:var(--S)}
+.cd-shadow{position:absolute;inset:1.5%;border-radius:50%;box-shadow:0 calc(var(--S) * .04) calc(var(--S) * .09) rgba(0,0,0,.45), 0 calc(var(--S) * .008) calc(var(--S) * .02) rgba(0,0,0,.3)}
+.cd-disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;will-change:transform;
+  -webkit-mask:radial-gradient(circle closest-side, transparent 0 14.6%, #000 15.2%);
+          mask:radial-gradient(circle closest-side, transparent 0 14.6%, #000 15.2%)}
+.cd-mirror{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg, #dfe3e7, #a9b0b8, #f1f3f5, #9ea5ad, #e3e6ea, #b3b9c0, #dfe3e7);
+  -webkit-mask:radial-gradient(circle closest-side, transparent 0 32.8%, #000 33.2% 99.2%, transparent 99.6%);
+          mask:radial-gradient(circle closest-side, transparent 0 32.8%, #000 33.2% 99.2%, transparent 99.6%)}
+.cd-print{position:absolute;inset:0;border-radius:50%;overflow:hidden;
+  -webkit-mask:radial-gradient(circle closest-side, transparent 0 38.4%, #000 39% 98.4%, transparent 99%);
+          mask:radial-gradient(circle closest-side, transparent 0 38.4%, #000 39% 98.4%, transparent 99%)}
+.cd-print img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cd-clear{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle closest-side, transparent 0 15%, rgba(235,240,245,.2) 15.5% 21.6%, rgba(255,255,255,.5) 22% 22.6%, rgba(235,240,245,.14) 23% 32.6%, transparent 33% 99.2%, rgba(255,255,255,.35) 99.5% 100%)}
+.cd-shine{position:absolute;inset:0;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:
+    conic-gradient(from 200deg, transparent 0 4%, rgba(255,90,120,.24) 8%, rgba(255,210,90,.24) 12%, rgba(110,255,170,.22) 16%, rgba(90,170,255,.26) 20%, rgba(190,110,255,.22) 24%, transparent 29%, transparent 50%, rgba(255,90,120,.18) 58%, rgba(255,210,90,.18) 62%, rgba(110,255,170,.16) 66%, rgba(90,170,255,.2) 70%, rgba(190,110,255,.16) 74%, transparent 79%),
+    radial-gradient(60% 40% at 30% 25%, rgba(255,255,255,.2), transparent 70%);
+  -webkit-mask:radial-gradient(circle closest-side, transparent 0 15%, #000 15.6% 99.4%, transparent 100%);
+          mask:radial-gradient(circle closest-side, transparent 0 15%, #000 15.6% 99.4%, transparent 100%)}
+
+/* Desk */
+.desk{left:0;top:0;width:var(--S);height:var(--S);border-radius:calc(var(--S) * .025);overflow:hidden;background:#1c1a19;
+  box-shadow:0 calc(var(--S) * .07) calc(var(--S) * .14) rgba(0,0,0,.45), 0 calc(var(--S) * .01) calc(var(--S) * .03) rgba(0,0,0,.3)}
+.comp[data-mode="desk"].is-playing .desk{animation:float 9s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-1.2%)}}
+
+.clock{display:none;margin:0 0 clamp(18px,3vh,30px)}
+body[data-mode="desk"] .clock{display:block}
+.clock-time{display:block;font-family:var(--sans);font-weight:200;font-size:clamp(4.4rem, 2rem + 7vw, 9.5rem);line-height:.88;letter-spacing:-.055em;font-variant-numeric:tabular-nums;margin-left:-.04em}
+.clock-date{display:block;margin-top:12px;font:500 13px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+body[data-mode="desk"] .title{font-size:clamp(1.7rem, 1rem + 1.7vw, 2.8rem);letter-spacing:-.03em}
+body[data-mode="desk"] .eyebrow{margin-bottom:12px}
 
 /* Track notes */
 .eyebrow{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;margin:0 0 18px;font:500 12px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
@@ -213,7 +309,7 @@ body.idle{cursor:none}
 .album{margin:4px 0 0;color:var(--ink-3);font-size:1rem}
 .lead-muted{margin:14px 0 0;color:var(--ink-2);font-size:1.1rem;max-width:30rem}
 
-.progress{margin-top:clamp(24px,4vh,42px);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.progress{margin-top:clamp(22px,3.6vh,40px);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
 .track{position:relative;height:4px;border-radius:4px;background:rgba(255,255,255,.22);margin-block:10px}
 .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:var(--ink)}
 .knob{position:absolute;top:50%;left:0;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.35);opacity:0;transition:opacity .2s}
@@ -221,7 +317,7 @@ body.idle{cursor:none}
 @media (hover:none){ .knob{opacity:1} body.idle .knob{opacity:0} }
 .times{display:flex;justify-content:space-between;font:400 12.5px/1 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-.transport{display:flex;align-items:center;gap:18px;margin-top:clamp(18px,3vh,32px)}
+.transport{display:flex;align-items:center;gap:18px;margin-top:clamp(16px,2.8vh,30px)}
 .t-btn{appearance:none;border:0;cursor:pointer;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:var(--ink);transition:transform .12s ease, background .2s}
 .t-btn:hover{background:var(--glass-hi)}
 .t-btn:active{transform:scale(.94)}
@@ -229,7 +325,14 @@ body.idle{cursor:none}
 .t-btn.play{width:76px;height:76px;background:var(--ink);color:#141210;border:0}
 .t-btn.play:hover{background:#fff;transform:scale(1.03)}
 .t-btn.play svg{width:30px;height:30px}
-.device{margin:18px 0 0;font:400 12px/1.4 var(--mono);color:var(--ink-3);letter-spacing:.04em}
+
+.next{display:flex;align-items:center;gap:12px;margin-top:clamp(16px,2.6vh,26px);padding:7px 16px 7px 7px;border-radius:14px;width:fit-content;max-width:100%}
+.next img,.next .next-ph{width:46px;height:46px;border-radius:7px;object-fit:cover;flex:none;background:rgba(255,255,255,.12)}
+.next-text{display:grid;min-width:0;gap:1px}
+.next-k{font:500 10.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.next-t{font-weight:580;font-size:14.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.next-a{font-size:13px;line-height:1.3;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device{margin:14px 0 0;font:400 12px/1.4 var(--mono);color:var(--ink-3);letter-spacing:.04em}
 
 /* Setup */
 .setup .title{font-size:clamp(2rem, 1.2rem + 2vw, 3.1rem)}
@@ -266,7 +369,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
 
 @media (prefers-reduced-motion:reduce){
   .dot.live{animation:none}
-  .slot,.sleeve,.comp{transition:none!important}
+  .slot,.sleeve,.comp,.v{transition:none!important}
+  .desk,.cassette svg{animation:none!important}
 }
 </style>
 </head>
@@ -278,11 +382,15 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
 <div class="app">
   <header class="bar chrome">
     <span class="wordmark">Plak</span>
+    <div class="tabs glass" role="group" aria-label="Görünüm" id="tabs">
+      <button type="button" data-style="sleeve" aria-pressed="true">Kılıf</button>
+      <button type="button" data-style="turntable" aria-pressed="false">Pikap</button>
+      <button type="button" data-style="label" aria-pressed="false">Etiket</button>
+      <button type="button" data-style="cassette" aria-pressed="false">Kaset</button>
+      <button type="button" data-style="cd" aria-pressed="false">CD</button>
+      <button type="button" data-style="desk" aria-pressed="false">Masa</button>
+    </div>
     <div class="bar-actions">
-      <div class="seg glass" role="group" aria-label="Görünüm">
-        <button type="button" data-style="sleeve" aria-pressed="true">Kılıf</button>
-        <button type="button" data-style="turntable" aria-pressed="false">Pikap</button>
-      </div>
       <button class="icon-btn glass" id="wakeBtn" type="button" aria-pressed="false" title="Ekran açık kalsın" aria-label="Ekran açık kalsın" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>
       </button>
@@ -297,35 +405,61 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
         <button type="button" role="menuitem" id="rpmBtn">Plak hızı <span class="val" id="rpmVal">33⅓ devir</span></button>
         <button type="button" role="menuitem" id="changeIdBtn" hidden>Client ID'yi değiştir</button>
         <button type="button" role="menuitem" class="danger" id="logoutBtn" hidden>Spotify bağlantısını kes</button>
-        <p class="note"><kbd>Boşluk</kbd> çal / duraklat · <kbd>F</kbd> tam ekran · <kbd>←</kbd> <kbd>→</kbd> parça değiştir. Giriş bilgileri yalnızca bu tarayıcıda saklanır.</p>
+        <p class="note"><kbd>1</kbd>–<kbd>6</kbd> görünüm · <kbd>Boşluk</kbd> çal / duraklat · <kbd>F</kbd> tam ekran · <kbd>←</kbd> <kbd>→</kbd> parça. Görünümler arasında plağı sağa sola kaydırarak da geçebilirsin.</p>
       </div>
     </div>
   </header>
 
   <main class="stage" id="stage">
-    <div class="comp mode-sleeve" id="comp">
-      <div class="platter" id="platter"><div class="strobe"></div></div>
+    <div class="comp" data-mode="sleeve" id="comp">
+      <!-- Pikap / Etiket: platter -->
+      <div class="platter v v-turntable v-label" id="platter"><div class="strobe"></div></div>
 
-      <div class="slot">
+      <!-- Kılıf / Pikap / Etiket: record -->
+      <div class="slot v v-sleeve v-turntable v-label">
         <div class="record" id="record">
           <div class="label">
             <img id="labelImg" alt="" hidden>
             <div class="house-label" id="labelHouse"><span>Plak</span></div>
+            <svg class="label-print" viewBox="0 0 100 100" aria-hidden="true">
+              <defs><path id="lpArc" d="M 8.5,50 A 41.5,41.5 0 0 1 91.5,50"/></defs>
+              <circle class="lp-bg" cx="50" cy="50" r="50"/>
+              <circle class="lp-ring" cx="50" cy="50" r="47.6"/>
+              <text class="lp-ink lp-arc"><textPath href="#lpArc" startOffset="50%" text-anchor="middle">PLAK PLAKÇILIK · STEREO</textPath></text>
+              <text id="lpT1" class="lp-ink lp-title" x="50" y="23" text-anchor="middle"></text>
+              <text id="lpT2" class="lp-ink lp-title" x="50" y="27" text-anchor="middle"></text>
+              <text id="lpSide" class="lp-ink lp-side" x="13" y="53.4" text-anchor="middle">A</text>
+              <text class="lp-ink lp-rpm" x="87" y="51.6" text-anchor="middle">45</text>
+              <text class="lp-ink lp-small" x="87" y="56.6" text-anchor="middle">DEVİR</text>
+              <text id="lpArtist" class="lp-ink lp-artist" x="50" y="80" text-anchor="middle"></text>
+              <text id="lpSub" class="lp-ink lp-small" x="50" y="86.6" text-anchor="middle"></text>
+              <circle cx="50" cy="50" r="21" fill="#0c0c0c"/>
+              <g class="lp-adapter">
+                <circle cx="50" cy="50" r="19.9" fill="none" stroke-width="2.2"/>
+                <rect x="47.7" y="30.4" width="4.6" height="19.6" rx="1.4"/>
+                <rect x="47.7" y="30.4" width="4.6" height="19.6" rx="1.4" transform="rotate(120 50 50)"/>
+                <rect x="47.7" y="30.4" width="4.6" height="19.6" rx="1.4" transform="rotate(240 50 50)"/>
+                <circle cx="50" cy="50" r="7.2"/>
+              </g>
+              <circle cx="50" cy="50" r="1.9" fill="#0c0c0c"/>
+            </svg>
           </div>
           <div class="hole"></div>
         </div>
         <div class="sheen" aria-hidden="true"></div>
       </div>
 
-      <div class="sleeve" id="sleeve">
+      <!-- Kılıf: sleeve -->
+      <div class="sleeve v v-sleeve" id="sleeve">
         <img id="sleeveImg" alt="" hidden>
-        <div class="house-sleeve" id="sleeveHouse">
+        <div class="house-art" id="sleeveHouse">
           <span class="hs-title">Plak</span>
           <span class="hs-foot"><span>Stereo</span><span>33⅓ devir</span></span>
         </div>
       </div>
 
-      <svg class="arm" viewBox="0 0 125 100" aria-hidden="true">
+      <!-- Pikap / Etiket: tonearm -->
+      <svg class="arm v v-turntable v-label" viewBox="0 0 125 100" aria-hidden="true">
         <defs>
           <linearGradient id="tubeGrad" gradientUnits="userSpaceOnUse" x1="0" y1="-1" x2="0" y2="1">
             <stop offset="0" stop-color="#8e8a84"/>
@@ -363,9 +497,112 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
           <circle cx="0" cy="0" r="1.1" fill="#c2bdb6"/>
         </g>
       </svg>
+
+      <!-- Kaset -->
+      <div class="cassette v v-cassette" id="cassette">
+        <div class="cs-shadow"></div>
+        <svg viewBox="0 0 150 100" aria-hidden="true">
+          <defs>
+            <clipPath id="csWin"><rect x="44" y="40" width="62" height="20" rx="3"/></clipPath>
+            <clipPath id="csLab"><rect x="10" y="8" width="130" height="58" rx="3"/></clipPath>
+            <linearGradient id="csGloss" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff" stop-opacity=".16"/>
+              <stop offset=".35" stop-color="#fff" stop-opacity=".03"/>
+              <stop offset="1" stop-color="#000" stop-opacity=".22"/>
+            </linearGradient>
+            <linearGradient id="csGlass" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fff" stop-opacity=".18"/>
+              <stop offset=".55" stop-color="#fff" stop-opacity="0"/>
+            </linearGradient>
+            <g id="csHub">
+              <circle r="5.4" fill="#ece6dc"/>
+              <circle r="5.4" fill="none" stroke="rgba(0,0,0,.25)" stroke-width=".3"/>
+              <g fill="#0e0b0a">
+                <rect x="-.6" y="-3.9" width="1.2" height="1.7" rx=".3"/>
+                <rect x="-.6" y="-3.9" width="1.2" height="1.7" rx=".3" transform="rotate(60)"/>
+                <rect x="-.6" y="-3.9" width="1.2" height="1.7" rx=".3" transform="rotate(120)"/>
+                <rect x="-.6" y="-3.9" width="1.2" height="1.7" rx=".3" transform="rotate(180)"/>
+                <rect x="-.6" y="-3.9" width="1.2" height="1.7" rx=".3" transform="rotate(240)"/>
+                <rect x="-.6" y="-3.9" width="1.2" height="1.7" rx=".3" transform="rotate(300)"/>
+              </g>
+              <circle r="2.3" fill="#0e0b0a"/>
+            </g>
+            <g id="csScrew">
+              <circle r="2.1" fill="#8f8981"/>
+              <circle r="2.1" fill="none" stroke="rgba(0,0,0,.35)" stroke-width=".3"/>
+              <path d="M-1.3 0H1.3M0 -1.3V1.3" stroke="#4a4642" stroke-width=".5" stroke-linecap="round"/>
+            </g>
+          </defs>
+          <rect class="cs-shell" x="3" y="3" width="144" height="94" rx="5.5"/>
+          <rect x="3" y="3" width="144" height="94" rx="5.5" fill="url(#csGloss)"/>
+          <rect x="3.4" y="3.4" width="143.2" height="93.2" rx="5.2" fill="none" stroke="rgba(255,255,255,.13)" stroke-width=".5"/>
+          <use href="#csScrew" x="8.2" y="8.2"/>
+          <use href="#csScrew" x="141.8" y="8.2"/>
+          <use href="#csScrew" x="8.2" y="91.8"/>
+          <use href="#csScrew" x="141.8" y="91.8"/>
+
+          <rect class="cs-label" x="10" y="8" width="130" height="58" rx="3"/>
+          <g clip-path="url(#csLab)"><rect class="cs-stripe" x="10" y="36" width="130" height="30"/></g>
+          <path class="cs-line" d="M30 22.6H135M30 31.6H135"/>
+          <rect x="14" y="12.4" width="11" height="11" rx="1.2" fill="none" stroke="#2a2420" stroke-width=".6"/>
+          <text id="csSide" class="cs-side" x="19.5" y="21.1" text-anchor="middle">A</text>
+          <text id="csTitle" class="cs-hand" x="31" y="21.4" font-size="10"></text>
+          <text id="csArtist" class="cs-hand" x="31" y="30.4" font-size="6.6"></text>
+          <text class="cs-mono cs-stripe-ink" x="15" y="52.6">STEREO</text>
+          <text class="cs-mono cs-stripe-ink" x="135" y="52.6" text-anchor="end">C90</text>
+
+          <rect x="42.4" y="38.4" width="65.2" height="23.2" rx="4" fill="rgba(0,0,0,.4)"/>
+          <rect x="44" y="40" width="62" height="20" rx="3" fill="#0e0b0a"/>
+          <g clip-path="url(#csWin)">
+            <circle id="packL" cx="57" cy="50" r="12" fill="#3b2a21"/>
+            <circle id="packR" cx="93" cy="50" r="9" fill="#3b2a21"/>
+            <circle id="packLs" cx="57" cy="50" r="10" fill="none" stroke="rgba(255,255,255,.06)" stroke-width=".4"/>
+            <circle id="packRs" cx="93" cy="50" r="7" fill="none" stroke="rgba(255,255,255,.06)" stroke-width=".4"/>
+          </g>
+          <use id="hubL" href="#csHub" transform="translate(57 50)"/>
+          <use id="hubR" href="#csHub" transform="translate(93 50)"/>
+          <rect x="44" y="40" width="62" height="20" rx="3" fill="url(#csGlass)"/>
+
+          <path d="M36 97 L42 72 L108 72 L114 97 Z" fill="rgba(0,0,0,.24)" stroke="rgba(255,255,255,.09)" stroke-width=".4"/>
+          <use href="#csScrew" x="75" y="78.6"/>
+          <circle cx="51" cy="87" r="2.7" fill="#0a0808"/>
+          <circle cx="99" cy="87" r="2.7" fill="#0a0808"/>
+          <rect x="66.5" y="88" width="17" height="6" rx="1" fill="#0a0808"/>
+          <rect x="57.5" y="89.5" width="3.2" height="3.2" rx=".4" fill="#0a0808"/>
+          <rect x="89.3" y="89.5" width="3.2" height="3.2" rx=".4" fill="#0a0808"/>
+        </svg>
+      </div>
+
+      <!-- CD -->
+      <div class="cd v v-cd" id="cdWrap">
+        <div class="cd-shadow"></div>
+        <div class="cd-disc" id="cdDisc">
+          <div class="cd-mirror"></div>
+          <div class="cd-print">
+            <img id="cdImg" alt="" hidden>
+            <div class="house-art" id="cdHouse"><span class="hs-title">Plak</span></div>
+          </div>
+          <div class="cd-clear"></div>
+        </div>
+        <div class="cd-shine" aria-hidden="true"></div>
+      </div>
+
+      <!-- Masa -->
+      <div class="desk v v-desk" id="desk">
+        <img id="deskImg" alt="" hidden>
+        <div class="house-art" id="deskHouse">
+          <span class="hs-title">Plak</span>
+          <span class="hs-foot"><span>Stereo</span><span>Masa</span></span>
+        </div>
+      </div>
     </div>
 
     <section class="info" aria-live="polite">
+      <div class="clock" id="clock">
+        <span class="clock-time" id="clockTime">--:--</span>
+        <span class="clock-date" id="clockDate"></span>
+      </div>
+
       <!-- Now playing -->
       <div id="nowPlaying" hidden>
         <p class="eyebrow">
@@ -394,6 +631,15 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.5 5.6v12.8c0 .7.8 1.1 1.4.7l8.7-6.4a.85.85 0 0 0 0-1.4L6.9 4.9c-.6-.4-1.4 0-1.4.7z"/><rect x="16.6" y="5.5" width="2.4" height="13" rx="1"/></svg>
           </button>
         </div>
+
+        <div class="next glass" id="nextCard" hidden>
+          <img id="nextImg" alt="">
+          <div class="next-text">
+            <span class="next-k">Sıradaki</span>
+            <span class="next-t" id="nextTitle"></span>
+            <span class="next-a" id="nextArtist"></span>
+          </div>
+        </div>
         <p class="device chrome" id="device"></p>
       </div>
 
@@ -401,14 +647,14 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
       <div id="idle" hidden>
         <p class="eyebrow"><span class="dot"></span><span>Sessizlik</span></p>
         <h1 class="title">Şu an bir şey çalmıyor</h1>
-        <p class="lead-muted">Spotify'da bir şarkı aç, plak kılıfından çıkıp dönmeye başlar.</p>
+        <p class="lead-muted">Spotify'da bir şarkı aç, burada dönmeye başlar.</p>
       </div>
 
       <!-- Setup -->
       <div id="setup" class="setup" hidden>
         <p class="eyebrow"><span>Kurulum · bir kerelik</span></p>
         <h1 class="title">Spotify'a bağla</h1>
-        <p class="lead">Plak, Spotify'da çalan şarkıyı okur ve burada döndürür. Kurulum 3 dakika kadar sürer, giriş bilgileri yalnızca bu cihazda kalır. Yandaki plak bir örnek.</p>
+        <p class="lead">Plak, Spotify'da çalan şarkıyı okur ve burada döndürür. Kurulum 3 dakika kadar sürer, giriş bilgileri yalnızca bu cihazda kalır. Yandaki bir örnek.</p>
         <ol class="steps">
           <li><p><a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com/dashboard</a> adresini aç, Spotify hesabınla giriş yap ve <b>Create app</b>'e dokun.</p></li>
           <li>
@@ -463,6 +709,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     return h ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}` : `${m}:${String(r).padStart(2, "0")}`;
   };
   const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+  const cut = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
+  const upper = (s) => s.toLocaleUpperCase("tr-TR");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const HOSTED = location.protocol === "https:" && location.origin !== "null";
@@ -472,8 +720,10 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   const SCOPES = "user-read-playback-state user-read-currently-playing user-modify-playback-state";
   const TOKEN_URL = "https://accounts.spotify.com/api/token";
   const API = "https://api.spotify.com/v1";
+  const STYLES = ["sleeve", "turntable", "label", "cassette", "cd", "desk"];
 
   /* ---------- state ---------- */
+  const storedStyle = store.get("style", "sleeve");
   const S = {
     mode: "demo",
     playing: false,
@@ -484,7 +734,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     trackKey: null,
     device: null,
     rpm: store.get("rpm", 33.333),
-    style: store.get("style", "sleeve"),
+    style: STYLES.includes(storedStyle) ? storedStyle : "sleeve",
     demoPlaying: true,
     handoff: false,
     artUrl: undefined
@@ -700,6 +950,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     S.item = null; S.trackKey = null; S.playing = false; S.duration = 0;
     clearTimeout(pollTimer);
     setArt(null);
+    setPrinted(null);
+    setNext(null);
     $("changeIdBtn").hidden = $("logoutBtn").hidden = true;
     closeMenu();
     if (S.handoff) { showPanel("handoff"); updatePlayUI(); return; }
@@ -723,7 +975,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   }
 
   /* ---------- polling ---------- */
-  let pollTimer = 0;
+  let pollTimer = 0, pollCount = 0;
   async function poll() {
     clearTimeout(pollTimer);
     if (document.hidden || S.mode !== "connected") return;
@@ -731,7 +983,10 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     try {
       const r = await api("/me/player?additional_types=episode");
       if (r.status === 204 || !r.data || !r.data.item) setIdle();
-      else applyPlayer(r.data);
+      else {
+        applyPlayer(r.data);
+        if (++pollCount % 6 === 0) fetchQueue();
+      }
     } catch (e) {
       if (e instanceof AuthError) { toDemo("Spotify oturumu sona erdi. Tekrar bağlanmak için “Spotify ile bağlan”a dokun."); return; }
       if (e.message === "rate") { delay = e.retryAfter * 1000; toast(`Spotify biraz yavaşlamamızı istedi. ${e.retryAfter} sn sonra tekrar denenecek.`); }
@@ -749,6 +1004,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   function setIdle() {
     S.playing = false; S.item = null; S.trackKey = null; S.duration = 0; S.progress = 0;
     setArt(null);
+    setPrinted(null);
+    setNext(null);
     showPanel("idle");
     updatePlayUI();
   }
@@ -761,11 +1018,24 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     S.duration = item.duration_ms || 0;
     S.fetchedAt = performance.now();
     const key = item.uri || item.id || item.name;
-    if (key !== S.trackKey) { S.trackKey = key; setTrack(item); }
     S.item = item;
+    if (key !== S.trackKey) { S.trackKey = key; setTrack(item); fetchQueue(); }
     showPanel("nowPlaying");
     $("device").textContent = S.device && S.device.name ? "Çalan cihaz · " + S.device.name : "";
     updatePlayUI();
+  }
+
+  const artistsOf = (it) => (it.type === "episode" ? (it.show && it.show.name) || "" : (it.artists || []).map((a) => a.name).filter(Boolean).join(", "));
+  function sideOf(item) {
+    if (!item || item.type === "episode" || !item.track_number) return { letter: "A", text: "" };
+    const disc = item.disc_number || 1;
+    const album = item.album;
+    if (disc > 1) return { letter: String.fromCharCode(65 + Math.min((disc - 1) * 2, 24)), text: `${disc}. disk · ${item.track_number}. parça` };
+    if (album && album.total_tracks > 1) {
+      const letter = item.track_number > Math.ceil(album.total_tracks / 2) ? "B" : "A";
+      return { letter, text: `${letter} yüzü · ${item.track_number}. parça` };
+    }
+    return { letter: "A", text: `${item.track_number}. parça` };
   }
 
   function setTrack(item) {
@@ -773,27 +1043,84 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     const title = item.name || "Adsız parça";
     $("title").textContent = title;
     $("title").classList.toggle("long", title.length > 26);
-    $("artist").textContent = isEpisode
-      ? (item.show && item.show.name) || ""
-      : (item.artists || []).map((a) => a.name).filter(Boolean).join(", ");
+    $("artist").textContent = artistsOf(item);
     const album = item.album;
     const year = album && album.release_date ? album.release_date.slice(0, 4) : "";
     $("album").textContent = isEpisode ? "Podcast bölümü" : [album && album.name, year].filter(Boolean).join(" · ");
-
-    let side = "";
-    if (!isEpisode && item.track_number) {
-      const disc = item.disc_number || 1;
-      if (disc > 1) side = `${disc}. disk · ${item.track_number}. parça`;
-      else if (album && album.total_tracks > 1) {
-        const letter = item.track_number > Math.ceil(album.total_tracks / 2) ? "B" : "A";
-        side = `${letter} yüzü · ${item.track_number}. parça`;
-      } else side = `${item.track_number}. parça`;
-    }
-    $("sideText").textContent = side;
-    $("sideText").hidden = !side;
-
+    const side = sideOf(item);
+    $("sideText").textContent = side.text;
+    $("sideText").hidden = !side.text;
+    setPrinted(item);
     const imgs = (album && album.images) || item.images || [];
     setArt(imgs.length ? imgs[0].url : null);
+  }
+
+  /* ---------- printed labels (Etiket + Kaset) ---------- */
+  function splitTitle(t) {
+    const words = t.split(/\s+/);
+    if (words.length < 2) return [t, ""];
+    let best = [t, ""], score = Infinity;
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join(" "), b = words.slice(i).join(" ");
+      const s = Math.max(a.length, b.length);
+      if (s < score) { score = s; best = [a, b]; }
+    }
+    return best;
+  }
+  function setPrinted(item) {
+    const title = item ? item.name || "Adsız parça" : (S.mode === "connected" ? "Sessizlik" : "En sevdiklerim");
+    const artist = item ? artistsOf(item) : (S.mode === "connected" ? "Plak" : "Karışık kaset");
+    const album = item && item.album;
+    const year = album && album.release_date ? album.release_date.slice(0, 4) : "";
+    const sub = item ? (item.type === "episode" ? "Podcast" : [album && album.name, year].filter(Boolean).join(" · ")) : "Stereo";
+    const side = sideOf(item).letter;
+
+    // 45 label
+    const T = upper(title);
+    const t1 = $("lpT1"), t2 = $("lpT2");
+    if (T.length <= 15) {
+      t1.textContent = T; t1.setAttribute("y", "23.4"); t1.style.fontSize = "6.4px";
+      t2.textContent = "";
+    } else {
+      let [a, b] = splitTitle(T);
+      a = cut(a, 19); b = cut(b, 19);
+      t1.textContent = a; t1.setAttribute("y", "19.6"); t1.style.fontSize = "5.1px";
+      t2.textContent = b; t2.setAttribute("y", "26.2"); t2.style.fontSize = "5.1px";
+    }
+    $("lpArtist").textContent = cut(artist, 26);
+    $("lpSub").textContent = upper(cut(sub, 30));
+    $("lpSide").textContent = side;
+
+    // cassette
+    const ct = $("csTitle");
+    ct.textContent = cut(title, 34);
+    ct.setAttribute("font-size", title.length <= 22 ? "10.5" : title.length <= 28 ? "8.6" : "7.4");
+    $("csArtist").textContent = cut(artist, 38);
+    $("csSide").textContent = side;
+  }
+
+  /* ---------- up next ---------- */
+  async function fetchQueue() {
+    if (S.mode !== "connected") return;
+    try {
+      const r = await api("/me/player/queue");
+      const q = (r.data && r.data.queue) || [];
+      setNext(q.find((it) => it && (it.uri || it.name) && (it.uri || it.name) !== S.trackKey) || null);
+    } catch (e) {
+      if (e instanceof AuthError) return;
+      setNext(null);
+    }
+  }
+  function setNext(it) {
+    const card = $("nextCard");
+    if (!it) { card.hidden = true; return; }
+    $("nextTitle").textContent = it.name || "";
+    $("nextArtist").textContent = artistsOf(it);
+    const imgs = (it.album && it.album.images) || it.images || [];
+    const im = imgs.length > 1 ? imgs[imgs.length - 2] : imgs[0];
+    const el = $("nextImg");
+    if (im && im.url) { el.src = im.url; el.hidden = false; } else { el.hidden = true; el.removeAttribute("src"); }
+    card.hidden = false;
   }
 
   /* ---------- colour ---------- */
@@ -856,7 +1183,6 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     const first = pal[0] || DEFAULT_PAL[0];
     while (pal.length < 3) pal.push({ h: (first.h + pal.length * 35) % 360, s: first.s, l: first.l });
 
-    // Richer colour for the background copy of the art.
     for (let i = 0; i < px.length; i += 4) {
       const [h, s, l] = rgb2hsl(px[i], px[i + 1], px[i + 2]);
       const [r, g, b] = hsl2rgb(h, Math.min(1, s * 1.35), l);
@@ -866,10 +1192,21 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     return { small, pal, lum: lumSum / (px.length / 4) };
   }
 
-  function setAccent(pal) {
-    const vivid = [...pal].sort((a, b) => b.s - a.s)[0];
-    const c = !vivid || vivid.s < 0.2 ? "#f3c08a" : `hsl(${Math.round(vivid.h)} ${Math.round(clamp(vivid.s * 100, 55, 85))}% 70%)`;
-    document.documentElement.style.setProperty("--accent", c);
+  function setTheme(pal) {
+    const root = document.documentElement.style;
+    const vivid = [...pal].sort((a, b) => b.s - a.s)[0] || DEFAULT_PAL[0];
+    root.setProperty("--accent", vivid.s < 0.2 ? "#f3c08a" : `hsl(${Math.round(vivid.h)} ${Math.round(clamp(vivid.s * 100, 55, 85))}% 70%)`);
+    let c1, ink;
+    if (vivid.s < 0.15) { c1 = [236, 227, 210]; ink = "#1d1712"; }
+    else {
+      c1 = hsl2rgb(vivid.h, clamp(vivid.s, 0.45, 0.78), 0.52);
+      const lum = (0.2126 * c1[0] + 0.7152 * c1[1] + 0.0722 * c1[2]) / 255;
+      ink = lum > 0.55 ? "#1d1712" : "#fbf4e8";
+    }
+    root.setProperty("--c1", `rgb(${c1.map((v) => v | 0).join(",")})`);
+    root.setProperty("--c1-ink", ink);
+    const p0 = pal[0];
+    root.setProperty("--shell", `hsl(${Math.round(p0.h)} ${Math.round(clamp(p0.s * 0.4, 0.04, 0.22) * 100)}% 15%)`);
   }
 
   /* ---------- background field ---------- */
@@ -990,19 +1327,22 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
       el.removeAttribute("src");
     }
   }
+  const ART = [["sleeveImg", "sleeveHouse"], ["labelImg", "labelHouse"], ["cdImg", "cdHouse"], ["deskImg", "deskHouse"]];
   let swapTimer = 0;
   function swapArt(url, small, pal, lum, cors) {
     const hadArt = comp.dataset.art === "1";
     const apply = () => {
-      setImg($("sleeveImg"), url, cors);
-      setImg($("labelImg"), url, cors);
-      $("sleeveHouse").hidden = !!url;
-      $("labelHouse").hidden = !!url;
-      const si = $("sleeveImg");
-      si.classList.remove("fade"); void si.offsetWidth; si.classList.add("fade");
+      for (const [img, house] of ART) {
+        setImg($(img), url, cors);
+        $(house).hidden = !!url;
+      }
+      for (const id of ["sleeveImg", "deskImg"]) {
+        const el = $(id);
+        el.classList.remove("fade"); void el.offsetWidth; el.classList.add("fade");
+      }
       comp.dataset.art = url ? "1" : "0";
       bg.set(small, pal, lum);
-      setAccent(pal);
+      setTheme(pal);
     };
     clearTimeout(swapTimer);
     if (S.style === "sleeve" && !reduceMotion && hadArt && url) {
@@ -1017,6 +1357,18 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     }
   }
 
+  /* ---------- views ---------- */
+  function setStyle(style) {
+    if (!STYLES.includes(style)) return;
+    S.style = style;
+    store.set("style", style);
+    updatePlayUI();
+  }
+  function cycleStyle(dir) {
+    const i = STYLES.indexOf(S.style);
+    setStyle(STYLES[(i + dir + STYLES.length) % STYLES.length]);
+  }
+
   /* ---------- playback UI ---------- */
   function updatePlayUI() {
     const playing = isSpinning();
@@ -1028,9 +1380,9 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     $("rpmVal").textContent = S.rpm > 40 ? "45 devir" : "33⅓ devir";
     comp.classList.toggle("is-playing", playing);
     comp.classList.toggle("is-empty", S.mode === "connected" && !S.item);
-    document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.style === S.style)));
-    comp.classList.toggle("mode-sleeve", S.style === "sleeve");
-    comp.classList.toggle("mode-turntable", S.style === "turntable");
+    comp.dataset.mode = S.style;
+    document.body.dataset.mode = S.style;
+    document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.style === S.style)));
     if (document.body.classList.contains("idle") && !canIdle()) poke();
   }
 
@@ -1049,6 +1401,19 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
       $("progress").setAttribute("aria-valuenow", String(Math.round(frac * 100)));
       $("progress").setAttribute("aria-valuetext", `${fmt(p)} / ${fmt(S.duration)}`);
     }
+  }
+
+  /* ---------- clock ---------- */
+  const timeFmt = new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  const dateFmt = new Intl.DateTimeFormat("tr-TR", { weekday: "long", day: "numeric", month: "long" });
+  let lastClock = "";
+  function updateClock() {
+    const d = new Date();
+    const t = timeFmt.format(d);
+    if (t === lastClock) return;
+    lastClock = t;
+    $("clockTime").textContent = t;
+    $("clockDate").textContent = dateFmt.format(d);
   }
 
   /* ---------- controls ---------- */
@@ -1092,45 +1457,66 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     else toast("Komut Spotify'a ulaşmadı. İnternet bağlantını kontrol et.");
   }
 
-  /* ---------- record + tonearm animation ---------- */
-  const recordEl = $("record"), platterEl = $("platter");
+  /* ---------- animation: record, tonearm, CD, cassette reels ---------- */
+  const recordEl = $("record"), platterEl = $("platter"), cdDisc = $("cdDisc");
   const armG = $("armG"), armShadow = $("armShadow");
+  const hubL = $("hubL"), hubR = $("hubR"), packL = $("packL"), packR = $("packR"), packLs = $("packLs"), packRs = $("packRs");
   const PIVOT = { x: 114, y: 10 }, CEN = { x: 50, y: 50 }, ARM_LEN = 70;
   const D = Math.hypot(CEN.x - PIVOT.x, CEN.y - PIVOT.y);
   const ALPHA = Math.atan2(CEN.y - PIVOT.y, CEN.x - PIVOT.x) * 180 / Math.PI;
-  const R_OUT = 46.5, R_IN = 19.5, REST = 97;
-  const armFor = (p) => {
-    const r = R_OUT - clamp(p, 0, 1) * (R_OUT - R_IN);
+  const R_OUT = 46.5, REST = 97;
+  const armFor = (p, rIn) => {
+    const r = R_OUT - clamp(p, 0, 1) * (R_OUT - rIn);
     const c = (ARM_LEN * ARM_LEN + D * D - r * r) / (2 * ARM_LEN * D);
     return ALPHA - Math.acos(clamp(c, -1, 1)) * 180 / Math.PI;
   };
+  const speedFor = (style) => (style === "label" ? 45 * 6 : style === "cd" ? 150 : S.rpm * 6);
 
-  let last = performance.now(), angle = 0, omega = 0, arm = REST, lift = 1;
+  let last = performance.now(), angle = 0, mot = 0, spd = speedFor(S.style), arm = REST, lift = 1, angL = 0, angR = 0, lastClockCheck = 0;
   function frame(now) {
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     const spinning = isSpinning();
+    const style = S.style;
 
-    const target = spinning && !reduceMotion ? S.rpm * 6 : 0;
-    const tau = target > omega ? 0.5 : 0.9;
-    omega += (target - omega) * (1 - Math.exp(-dt / tau));
-    if (omega < 0.05 && target === 0) omega = 0;
+    mot += ((spinning ? 1 : 0) - mot) * (1 - Math.exp(-dt / (spinning ? 0.5 : 0.9)));
+    if (!spinning && mot < 0.002) mot = 0;
+    spd += (speedFor(style) - spd) * (1 - Math.exp(-dt / 0.5));
+    const omega = reduceMotion ? 0 : mot * spd;
     angle = (angle + omega * dt) % 360;
     const rot = `rotate(${angle.toFixed(2)}deg)`;
-    recordEl.style.transform = rot;
-    platterEl.style.transform = rot;
 
-    if (S.style === "turntable") {
-      let onRecord, p;
-      if (S.mode === "connected") { onRecord = !!S.item; p = S.duration ? currentProgress() / S.duration : 0; }
-      else { onRecord = true; p = ((now / 1000) % 222) / 222; }
-      const armTarget = onRecord ? armFor(p) : REST;
-      const liftTarget = spinning && onRecord ? 0 : 1;
-      arm += (armTarget - arm) * (reduceMotion ? 1 : 1 - Math.exp(-dt / 0.35));
-      lift += (liftTarget - lift) * (reduceMotion ? 1 : 1 - Math.exp(-dt / 0.25));
-      armG.setAttribute("transform", `translate(${PIVOT.x} ${PIVOT.y}) rotate(${arm.toFixed(3)})`);
-      armShadow.setAttribute("transform", `translate(${(PIVOT.x + 0.8 + lift * 1.6).toFixed(2)} ${(PIVOT.y + 1.2 + lift * 2.4).toFixed(2)}) rotate(${arm.toFixed(3)})`);
+    let p;
+    if (S.mode === "connected") p = S.duration ? currentProgress() / S.duration : 0;
+    else p = ((now / 1000) % 222) / 222;
+
+    if (style === "sleeve" || style === "turntable" || style === "label") {
+      recordEl.style.transform = rot;
+      if (style !== "sleeve") {
+        platterEl.style.transform = rot;
+        const onRecord = S.mode === "connected" ? !!S.item : true;
+        const armTarget = onRecord ? armFor(p, style === "label" ? 28 : 19.5) : REST;
+        const liftTarget = spinning && onRecord ? 0 : 1;
+        arm += (armTarget - arm) * (reduceMotion ? 1 : 1 - Math.exp(-dt / 0.35));
+        lift += (liftTarget - lift) * (reduceMotion ? 1 : 1 - Math.exp(-dt / 0.25));
+        armG.setAttribute("transform", `translate(${PIVOT.x} ${PIVOT.y}) rotate(${arm.toFixed(3)})`);
+        armShadow.setAttribute("transform", `translate(${(PIVOT.x + 0.8 + lift * 1.6).toFixed(2)} ${(PIVOT.y + 1.2 + lift * 2.4).toFixed(2)}) rotate(${arm.toFixed(3)})`);
+      }
+    } else if (style === "cd") {
+      cdDisc.style.transform = rot;
+    } else if (style === "cassette") {
+      const rL = 6.8 + 8.7 * (1 - p), rR = 6.8 + 8.7 * p;
+      if (!reduceMotion) {
+        angL = (angL + (1320 / rL) * mot * dt) % 360;
+        angR = (angR + (1320 / rR) * mot * dt) % 360;
+      }
+      packL.setAttribute("r", rL.toFixed(2)); packLs.setAttribute("r", Math.max(5.6, rL - 2).toFixed(2));
+      packR.setAttribute("r", rR.toFixed(2)); packRs.setAttribute("r", Math.max(5.6, rR - 2).toFixed(2));
+      hubL.setAttribute("transform", `translate(57 50) rotate(${angL.toFixed(1)})`);
+      hubR.setAttribute("transform", `translate(93 50) rotate(${angR.toFixed(1)})`);
     }
+
+    if (style === "desk" && now - lastClockCheck > 1000) { lastClockCheck = now; updateClock(); }
 
     bg.tick(now);
     updateProgressUI();
@@ -1166,6 +1552,17 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     if (n - lastMove > 200) { lastMove = n; poke(); }
   }, { passive: true });
   document.addEventListener("wheel", poke, { passive: true });
+
+  /* ---------- swipe between views ---------- */
+  let swipe = null;
+  comp.addEventListener("pointerdown", (e) => { swipe = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+  comp.addEventListener("pointerup", (e) => {
+    if (!swipe) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && performance.now() - swipe.t < 800) cycleStyle(dx < 0 ? 1 : -1);
+    swipe = null;
+  });
+  comp.addEventListener("pointercancel", () => { swipe = null; });
 
   /* ---------- fullscreen ---------- */
   const rootEl = document.documentElement;
@@ -1258,12 +1655,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   $("playBtn").addEventListener("click", () => control("toggle"));
   $("nextBtn").addEventListener("click", () => control("next"));
   $("prevBtn").addEventListener("click", () => control("prev"));
-
-  document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
-    S.style = b.dataset.style;
-    store.set("style", S.style);
-    updatePlayUI();
-  }));
+  document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => setStyle(b.dataset.style)));
 
   const prog = $("progress");
   let dragging = false;
@@ -1290,12 +1682,13 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     if (e.target.closest("input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.code === "Space" && !e.target.closest("button, [role=slider]")) { e.preventDefault(); control("toggle"); }
     else if (e.key === "f" || e.key === "F") { e.preventDefault(); toggleFs(); }
+    else if (/^[1-6]$/.test(e.key)) setStyle(STYLES[+e.key - 1]);
     else if (e.key === "ArrowRight" && !e.target.closest("[role=slider]")) control("next");
     else if (e.key === "ArrowLeft" && !e.target.closest("[role=slider]")) control("prev");
     else if (e.key === "Escape") closeMenu();
   });
 
-  $("stage").addEventListener("dblclick", (e) => { if (!e.target.closest("button, input, a, .progress, .setup")) toggleFs(); });
+  $("stage").addEventListener("dblclick", (e) => { if (!e.target.closest("button, input, a, .progress, .setup, .next")) toggleFs(); });
   $("fsBtn").addEventListener("click", toggleFs);
   $("wakeBtn").addEventListener("click", () => { wantWake = !wantWake; store.set("wake", wantWake); applyWake(); });
   $("menuBtn").addEventListener("click", (e) => {
@@ -1328,6 +1721,9 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   (async function boot() {
     makeIcon();
     poke();
+    updateClock();
+    setPrinted(null);
+    setTheme(DEFAULT_PAL);
     $("redirectUri").textContent = REDIRECT;
     updatePlayUI();
     updateFs();
