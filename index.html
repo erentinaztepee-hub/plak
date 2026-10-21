@@ -317,7 +317,7 @@ body[data-mode="desk"] .eyebrow{margin-bottom:12px}
 @media (hover:none){ .knob{opacity:1} body.idle .knob{opacity:0} }
 .times{display:flex;justify-content:space-between;font:400 12.5px/1 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-.transport{display:flex;align-items:center;gap:18px;margin-top:clamp(16px,2.8vh,30px)}
+.transport{display:flex;align-items:center;flex-wrap:wrap;gap:14px 18px;margin-top:clamp(16px,2.8vh,30px)}
 .t-btn{appearance:none;border:0;cursor:pointer;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;color:var(--ink);transition:transform .12s ease, background .2s}
 .t-btn:hover{background:var(--glass-hi)}
 .t-btn:active{transform:scale(.94)}
@@ -325,6 +325,32 @@ body[data-mode="desk"] .eyebrow{margin-bottom:12px}
 .t-btn.play{width:76px;height:76px;background:var(--ink);color:#141210;border:0}
 .t-btn.play:hover{background:#fff;transform:scale(1.03)}
 .t-btn.play svg{width:30px;height:30px}
+.t-extra{display:flex;align-items:center;gap:10px;margin-left:4px}
+.t-btn.small{width:46px;height:46px}
+.t-btn.small svg{width:20px;height:20px}
+.t-btn[aria-disabled="true"]{opacity:.42;cursor:default}
+.t-btn[aria-disabled="true"]:hover{background:var(--glass)}
+.like[aria-pressed="true"]{background:var(--ink);color:#141210}
+.like[aria-pressed="true"]:hover{background:#fff}
+.like[aria-pressed="true"] svg{fill:currentColor}
+.like.pop svg{animation:pop .38s ease}
+@keyframes pop{40%{transform:scale(1.3)}}
+.vol{display:flex;align-items:center;gap:10px}
+.vol-range{
+  -webkit-appearance:none;appearance:none;width:clamp(72px, 7vw, 112px);height:26px;margin:0;cursor:pointer;
+  background:linear-gradient(to right, var(--ink) 0 var(--v, 50%), rgba(255,255,255,.24) var(--v, 50%) 100%) center / 100% 4px no-repeat;
+}
+.vol-range::-webkit-slider-runnable-track{height:4px;background:transparent;border:0}
+.vol-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--ink);border:0;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.vol-range::-moz-range-track{height:4px;background:transparent;border:0}
+.vol-range::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);border:0;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.vol-range:disabled{opacity:.42;cursor:default}
+.vol-range:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:4px}
+.reauth{margin-top:16px;padding:14px 16px;border-radius:14px;max-width:30rem}
+.reauth p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink)}
+.reauth-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip-solid{appearance:none;border:0;cursor:pointer;min-height:40px;padding:0 18px;border-radius:999px;background:var(--ink);color:#141210;font:600 14px/1 var(--sans)}
+.reauth .chip{min-height:40px;border-radius:999px}
 
 .next{display:flex;align-items:center;gap:12px;margin-top:clamp(16px,2.6vh,26px);padding:7px 16px 7px 7px;border-radius:14px;width:fit-content;max-width:100%}
 .next img,.next .next-ph{width:46px;height:46px;border-radius:7px;object-fit:cover;flex:none;background:rgba(255,255,255,.12)}
@@ -405,7 +431,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
         <button type="button" role="menuitem" id="rpmBtn">Plak hızı <span class="val" id="rpmVal">33⅓ devir</span></button>
         <button type="button" role="menuitem" id="changeIdBtn" hidden>Client ID'yi değiştir</button>
         <button type="button" role="menuitem" class="danger" id="logoutBtn" hidden>Spotify bağlantısını kes</button>
-        <p class="note"><kbd>1</kbd>–<kbd>6</kbd> görünüm · <kbd>Boşluk</kbd> çal / duraklat · <kbd>F</kbd> tam ekran · <kbd>←</kbd> <kbd>→</kbd> parça. Görünümler arasında plağı sağa sola kaydırarak da geçebilirsin.</p>
+        <p class="note"><kbd>1</kbd>–<kbd>6</kbd> görünüm · <kbd>Boşluk</kbd> çal / duraklat · <kbd>F</kbd> tam ekran · <kbd>←</kbd> <kbd>→</kbd> parça · <kbd>M</kbd> sessiz · <kbd>↑</kbd> <kbd>↓</kbd> ses · <kbd>L</kbd> favori. Görünümler arasında plağı sağa sola kaydırarak da geçebilirsin.</p>
       </div>
     </div>
   </header>
@@ -630,6 +656,26 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
           <button class="t-btn glass" id="nextBtn" type="button" aria-label="Sonraki parça">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.5 5.6v12.8c0 .7.8 1.1 1.4.7l8.7-6.4a.85.85 0 0 0 0-1.4L6.9 4.9c-.6-.4-1.4 0-1.4.7z"/><rect x="16.6" y="5.5" width="2.4" height="13" rx="1"/></svg>
           </button>
+          <div class="t-extra">
+            <button class="t-btn glass small like" id="likeBtn" type="button" aria-label="Favorilere ekle" title="Favorilere ekle" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.2s-7.4-4.5-9-9.2C1.8 7.4 4 4.2 7.3 4.2c2 0 3.6 1.1 4.7 2.7 1.1-1.6 2.7-2.7 4.7-2.7 3.3 0 5.5 3.2 4.3 6.8-1.6 4.7-9 9.2-9 9.2z"/></svg>
+            </button>
+            <div class="vol">
+              <button class="t-btn glass small" id="muteBtn" type="button" aria-label="Sesi kapat" title="Sesi kapat (M)">
+                <svg id="icoVol" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.4h3.4l4.5-3.8v12.8l-4.5-3.8H3.5z" fill="currentColor"/><path d="M14.8 9.3a3.9 3.9 0 0 1 0 5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path id="volWave2" d="M17.4 6.7a7.5 7.5 0 0 1 0 10.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <svg id="icoMute" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M3.5 9.4h3.4l4.5-3.8v12.8l-4.5-3.8H3.5z" fill="currentColor"/><path d="M15.2 9.6l4.8 4.8M20 9.6l-4.8 4.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </button>
+              <input class="vol-range" id="volRange" type="range" min="0" max="100" step="1" value="50" aria-label="Ses seviyesi">
+            </div>
+          </div>
+        </div>
+
+        <div class="reauth glass" id="reauth" hidden>
+          <p>Favorilere ekleyebilmek için Spotify'a bir kez yeniden bağlanman gerekiyor. Spotify bu özellik için ayrı bir izin istiyor.</p>
+          <div class="reauth-actions">
+            <button class="chip-solid" id="reauthBtn" type="button">Yeniden bağlan</button>
+            <button class="chip glass" id="reauthLater" type="button">Sonra</button>
+          </div>
         </div>
 
         <div class="next glass" id="nextCard" hidden>
@@ -711,13 +757,15 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
   const cut = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s);
   const upper = (s) => s.toLocaleUpperCase("tr-TR");
+  // SVG elements ignore the .hidden property, so toggle the attribute itself.
+  const show = (el, on) => el.toggleAttribute("hidden", !on);
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const HOSTED = location.protocol === "https:" && location.origin !== "null";
   const REDIRECT = HOSTED
     ? location.origin + location.pathname.replace(/index\.html$/, "")
     : "https://KULLANICI-ADIN.github.io/plak/";
-  const SCOPES = "user-read-playback-state user-read-currently-playing user-modify-playback-state";
+  const SCOPES = "user-read-playback-state user-read-currently-playing user-modify-playback-state user-library-read user-library-modify";
   const TOKEN_URL = "https://accounts.spotify.com/api/token";
   const API = "https://api.spotify.com/v1";
   const STYLES = ["sleeve", "turntable", "label", "cassette", "cd", "desk"];
@@ -737,7 +785,14 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     style: STYLES.includes(storedStyle) ? storedStyle : "sleeve",
     demoPlaying: true,
     handoff: false,
-    artUrl: undefined
+    artUrl: undefined,
+    expectPlay: null,
+    fastUntil: 0,
+    liked: null,
+    likeTouch: -1e9,
+    vol: null,
+    volTouch: -1e9,
+    supportsVol: false
   };
   const currentProgress = () => {
     if (!S.duration) return 0;
@@ -748,9 +803,9 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
 
   /* ---------- toast ---------- */
   let toastTimer = 0, lastToast = "", lastToastAt = 0;
-  function toast(msg, ms = 4600) {
+  function toast(msg, ms = 4600, force = false) {
     const now = Date.now();
-    if (msg === lastToast && now - lastToastAt < 20000) return;
+    if (!force && msg === lastToast && now - lastToastAt < 20000) return;
     lastToast = msg; lastToastAt = now;
     const el = $("toast");
     el.textContent = msg;
@@ -786,8 +841,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
 
-  async function startLogin() {
-    const clientId = $("clientId").value.trim();
+  async function startLogin(idOverride) {
+    const clientId = (idOverride || $("clientId").value).trim();
     if (!/^[0-9a-f]{32}$/i.test(clientId)) {
       setupMsg("Client ID 32 karakterlik bir kod olmalı (rakamlar ve a–f harfleri). Spotify'daki uygulamanın Settings sayfasından kopyala.");
       $("clientId").focus();
@@ -821,6 +876,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     const t = store.get("tokens") || {};
     t.access = j.access_token;
     if (j.refresh_token) t.refresh = j.refresh_token;
+    if (typeof j.scope === "string") t.scope = j.scope;
     t.exp = Date.now() + (j.expires_in || 3600) * 1000;
     store.set("tokens", t);
   }
@@ -985,7 +1041,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
       if (r.status === 204 || !r.data || !r.data.item) setIdle();
       else {
         applyPlayer(r.data);
-        if (++pollCount % 6 === 0) fetchQueue();
+        if (++pollCount % 6 === 0) { fetchQueue(); fetchLiked(); }
       }
     } catch (e) {
       if (e instanceof AuthError) { toDemo("Spotify oturumu sona erdi. Tekrar bağlanmak için “Spotify ile bağlan”a dokun."); return; }
@@ -994,6 +1050,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
       else { delay = 8000; toast("Spotify'a ulaşılamadı. İnternet bağlantını kontrol et."); }
     }
     if (S.mode !== "connected") return;
+    if (performance.now() < S.fastUntil) delay = Math.min(delay, 900);
     if (S.playing && S.duration) {
       const remain = S.duration - currentProgress();
       if (remain < delay) delay = Math.max(900, remain + 700);
@@ -1012,16 +1069,25 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
 
   function applyPlayer(d) {
     const item = d.item;
+    const now = performance.now();
     S.device = d.device || null;
-    S.playing = !!d.is_playing;
-    S.progress = d.progress_ms || 0;
-    S.duration = item.duration_ms || 0;
-    S.fetchedAt = performance.now();
     const key = item.uri || item.id || item.name;
+    const sameTrack = key === S.trackKey;
+    const exp = S.expectPlay;
+    if (exp && now < exp.until && sameTrack && !!d.is_playing !== exp.value) {
+      // Right after play/pause Spotify can still report the old state for a moment; keep ours.
+    } else {
+      S.expectPlay = null;
+      S.playing = !!d.is_playing;
+      S.progress = d.progress_ms || 0;
+      S.fetchedAt = now;
+    }
+    S.duration = item.duration_ms || 0;
     S.item = item;
-    if (key !== S.trackKey) { S.trackKey = key; setTrack(item); fetchQueue(); }
+    if (!sameTrack) { S.trackKey = key; S.liked = null; setTrack(item); fetchQueue(); fetchLiked(); }
     showPanel("nowPlaying");
     $("device").textContent = S.device && S.device.name ? "Çalan cihaz · " + S.device.name : "";
+    applyVolume();
     updatePlayUI();
   }
 
@@ -1372,8 +1438,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   /* ---------- playback UI ---------- */
   function updatePlayUI() {
     const playing = isSpinning();
-    $("icoPause").hidden = !playing;
-    $("icoPlay").hidden = playing;
+    show($("icoPause"), playing);
+    show($("icoPlay"), !playing);
     $("playBtn").setAttribute("aria-label", playing ? "Duraklat" : "Çal");
     $("liveDot").classList.toggle("live", S.mode === "connected" && playing);
     $("stateText").textContent = playing ? "Şimdi çalıyor" : "Duraklatıldı";
@@ -1383,6 +1449,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     comp.dataset.mode = S.style;
     document.body.dataset.mode = S.style;
     document.querySelectorAll("#tabs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.style === S.style)));
+    renderLike();
     if (document.body.classList.contains("idle") && !canIdle()) poke();
   }
 
@@ -1426,7 +1493,9 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     try {
       if (kind === "toggle") {
         S.progress = currentProgress(); S.fetchedAt = performance.now();
-        S.playing = !wasPlaying; updatePlayUI();
+        S.playing = !wasPlaying;
+        S.expectPlay = { value: !wasPlaying, until: performance.now() + 3500 };
+        updatePlayUI();
         await api(wasPlaying ? "/me/player/pause" : "/me/player/play", { method: "PUT" });
       } else if (kind === "next") {
         await api("/me/player/next", { method: "POST" });
@@ -1434,9 +1503,10 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
         await api("/me/player/previous", { method: "POST" });
       }
     } catch (e) {
-      if (kind === "toggle") { S.playing = wasPlaying; updatePlayUI(); }
+      if (kind === "toggle") { S.playing = wasPlaying; S.expectPlay = null; updatePlayUI(); }
       controlError(e);
     }
+    S.fastUntil = performance.now() + 4000;
     setTimeout(poll, 500);
   }
 
@@ -1451,6 +1521,7 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
 
   function controlError(e) {
     if (e instanceof AuthError) { toDemo("Spotify oturumu sona erdi. Tekrar bağlan."); return; }
+    if (e.reason === "VOLUME_CONTROL_DISALLOW") { toast(VOL_DENIED, 5200, true); return; }
     if (e.status === 404 || e.reason === "NO_ACTIVE_DEVICE") toast("Önce Spotify uygulamasında bir şarkı başlat, sonra buradan kontrol edebilirsin.");
     else if (e.status === 403 || e.reason === "PREMIUM_REQUIRED") toast("Spotify bu komutu reddetti. Kontroller için Premium gerekiyor.");
     else if (e.message === "rate") toast("Spotify biraz yavaşlamamızı istedi, birazdan tekrar dene.");
@@ -1523,9 +1594,118 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     requestAnimationFrame(frame);
   }
 
+  /* ---------- favourites ---------- */
+  const hasScope = (s) => {
+    const t = store.get("tokens");
+    return !!(t && typeof t.scope === "string" && t.scope.split(" ").includes(s));
+  };
+  const likeUri = () => (S.mode === "connected" && S.item && !S.item.is_local && /^spotify:(track|episode):/.test(S.item.uri || "") ? S.item.uri : null);
+  function renderLike() {
+    const btn = $("likeBtn");
+    const uri = likeUri();
+    const on = !!(uri && S.liked);
+    btn.setAttribute("aria-disabled", String(!uri));
+    btn.setAttribute("aria-pressed", String(on));
+    const label = !uri ? "Bu parça favorilere eklenemez" : on ? "Favorilerden çıkar (L)" : "Favorilere ekle (L)";
+    btn.setAttribute("aria-label", label.replace(/ \(L\)$/, ""));
+    btn.title = label;
+  }
+  async function fetchLiked() {
+    const uri = likeUri();
+    if (!uri || !hasScope("user-library-read")) { renderLike(); return; }
+    if (performance.now() - S.likeTouch < 4000) return;
+    try {
+      const r = await api("/me/library/contains?uris=" + encodeURIComponent(uri));
+      if (likeUri() !== uri || performance.now() - S.likeTouch < 4000) return;
+      S.liked = Array.isArray(r.data) ? !!r.data[0] : null;
+      renderLike();
+    } catch (e) { /* keep the heart as it is */ }
+  }
+  async function toggleLike() {
+    const uri = likeUri();
+    if (!uri) { if (S.item) toast("Bu parça Spotify'da favorilere eklenemiyor.", 3600, true); return; }
+    if (!hasScope("user-library-modify")) { $("reauth").hidden = false; poke(); return; }
+    const was = !!S.liked;
+    const episode = uri.startsWith("spotify:episode:");
+    S.liked = !was;
+    S.likeTouch = performance.now();
+    renderLike();
+    const btn = $("likeBtn");
+    btn.classList.remove("pop"); void btn.offsetWidth;
+    if (!was) btn.classList.add("pop");
+    try {
+      await api("/me/library?uris=" + encodeURIComponent(uri), { method: was ? "DELETE" : "PUT" });
+      toast(episode
+        ? (was ? "Bölüm kaydedilenlerden çıkarıldı." : "Bölüm kaydedildi.")
+        : (was ? "Beğenilen Şarkılar'dan çıkarıldı." : "Beğenilen Şarkılar'a eklendi."), 2600, true);
+    } catch (e) {
+      S.liked = was;
+      renderLike();
+      if (e instanceof AuthError) { toDemo("Spotify oturumu sona erdi. Tekrar bağlan."); return; }
+      if (e.status === 403 && /scope/i.test(e.message)) { $("reauth").hidden = false; return; }
+      controlError(e);
+    }
+  }
+
+  /* ---------- volume ---------- */
+  const VOL_DENIED = "Spotify bu cihazda sesin uzaktan ayarlanmasına izin vermiyor. Sesi çalan cihazın kendisinden ayarla.";
+  let volDragging = false, volSendTimer = 0, volLastSent = 0;
+  function renderVol(v) {
+    const r = $("volRange"), b = $("muteBtn");
+    r.style.setProperty("--v", v + "%");
+    const muted = v === 0;
+    show($("icoVol"), !muted);
+    show($("icoMute"), muted);
+    show($("volWave2"), v >= 50);
+    b.setAttribute("aria-label", muted ? "Sesi aç" : "Sesi kapat");
+    b.title = !S.supportsVol ? "Bu cihazda ses buradan ayarlanamıyor" : muted ? "Sesi aç (M)" : "Sesi kapat (M)";
+    r.title = S.supportsVol ? `Ses: %${v}` : "Bu cihazda ses buradan ayarlanamıyor";
+  }
+  function applyVolume() {
+    const dev = S.device;
+    S.supportsVol = !!dev && dev.supports_volume !== false;
+    $("volRange").disabled = !S.supportsVol;
+    $("muteBtn").setAttribute("aria-disabled", String(!S.supportsVol));
+    if (dev && typeof dev.volume_percent === "number" && !volDragging && performance.now() - S.volTouch > 3000) {
+      S.vol = dev.volume_percent;
+      $("volRange").value = String(S.vol);
+    }
+    renderVol(S.vol == null ? 50 : S.vol);
+  }
+  function sendVolume(v) {
+    clearTimeout(volSendTimer);
+    const go = async () => {
+      volLastSent = performance.now();
+      try {
+        await api(`/me/player/volume?volume_percent=${v}`, { method: "PUT" });
+      } catch (e) {
+        S.volTouch = -1e9;
+        controlError(e);
+        setTimeout(poll, 400);
+      }
+    };
+    const wait = 350 - (performance.now() - volLastSent);
+    if (wait <= 0) go(); else volSendTimer = setTimeout(go, wait);
+  }
+  function setVolume(v) {
+    if (S.mode !== "connected" || !S.item) return;
+    if (!S.supportsVol) { toast(VOL_DENIED, 5200, true); return; }
+    v = Math.round(clamp(v, 0, 100));
+    S.vol = v;
+    S.volTouch = performance.now();
+    $("volRange").value = String(v);
+    renderVol(v);
+    sendVolume(v);
+  }
+  function toggleMute() {
+    const cur = S.vol == null ? 50 : S.vol;
+    if (cur > 0) { store.set("lastVol", cur); setVolume(0); }
+    else setVolume(clamp(store.get("lastVol", 50), 5, 100));
+  }
+
   /* ---------- auto-hide controls ---------- */
   let idleTimer = 0, swallowClick = false, swallowTimer = 0;
-  const canIdle = () => S.mode === "connected" && !!S.item && S.playing && $("menu").hidden && !$("progress").classList.contains("drag");
+  const canIdle = () => S.mode === "connected" && !!S.item && S.playing && $("menu").hidden && $("reauth").hidden && !volDragging && !$("progress").classList.contains("drag");
   function poke() {
     document.body.classList.remove("idle");
     clearTimeout(idleTimer);
@@ -1580,8 +1760,8 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   }
   function updateFs() {
     const on = fsActive();
-    $("icoExpand").hidden = on;
-    $("icoCollapse").hidden = !on;
+    show($("icoExpand"), !on);
+    show($("icoCollapse"), on);
     $("fsBtn").setAttribute("aria-label", on ? "Tam ekrandan çık" : "Tam ekran");
     $("fsBtn").title = on ? "Tam ekrandan çık (F)" : "Tam ekran (F)";
   }
@@ -1655,6 +1835,25 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
   $("playBtn").addEventListener("click", () => control("toggle"));
   $("nextBtn").addEventListener("click", () => control("next"));
   $("prevBtn").addEventListener("click", () => control("prev"));
+  $("likeBtn").addEventListener("click", toggleLike);
+  $("muteBtn").addEventListener("click", toggleMute);
+  $("reauthBtn").addEventListener("click", () => {
+    const id = store.get("clientId");
+    if (id) startLogin(id); else toDemo("Client ID bulunamadı. Kurulumu tekrar yap.");
+  });
+  $("reauthLater").addEventListener("click", () => { $("reauth").hidden = true; });
+
+  const vr = $("volRange");
+  vr.addEventListener("pointerdown", () => { volDragging = true; });
+  window.addEventListener("pointerup", () => { if (volDragging) { volDragging = false; S.volTouch = performance.now(); } });
+  window.addEventListener("pointercancel", () => { volDragging = false; });
+  vr.addEventListener("input", () => {
+    const v = +vr.value;
+    S.vol = v;
+    S.volTouch = performance.now();
+    renderVol(v);
+    sendVolume(v);
+  });
   document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => setStyle(b.dataset.style)));
 
   const prog = $("progress");
@@ -1683,6 +1882,12 @@ code.box{flex:1;min-width:0;display:block;padding:11px 12px;border-radius:12px;f
     if (e.code === "Space" && !e.target.closest("button, [role=slider]")) { e.preventDefault(); control("toggle"); }
     else if (e.key === "f" || e.key === "F") { e.preventDefault(); toggleFs(); }
     else if (/^[1-6]$/.test(e.key)) setStyle(STYLES[+e.key - 1]);
+    else if (e.key === "m" || e.key === "M") toggleMute();
+    else if (e.key === "l" || e.key === "L") toggleLike();
+    else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && S.mode === "connected" && S.item) {
+      e.preventDefault();
+      setVolume((S.vol == null ? 50 : S.vol) + (e.key === "ArrowUp" ? 5 : -5));
+    }
     else if (e.key === "ArrowRight" && !e.target.closest("[role=slider]")) control("next");
     else if (e.key === "ArrowLeft" && !e.target.closest("[role=slider]")) control("prev");
     else if (e.key === "Escape") closeMenu();
